@@ -12,6 +12,9 @@
 - 🔄 **回收站机制** — 软删除 + 10天可还原，永久删除需二次确认
 - 🌐 **语义化 URL** — 基于同学录名称和姓名的友好链接结构
 - 📱 **响应式设计** — 移动端和桌面端完美适配
+- 🔒 **Redis 验证码** — 基于 Redis 的验证码存储，5分钟自动过期
+- 🛡️ **全局异常处理** — 完善的错误捕获和友好错误页面
+- 📊 **日志记录** — 详细的错误和安全日志，方便排查问题
 
 ## 🛠 技术栈
 
@@ -19,6 +22,7 @@
 |------|------|
 | 后端框架 | Django 5.0+ |
 | 数据库 | PostgreSQL 16 |
+| 缓存 | Redis 7+ |
 | Python | 3.12 |
 | 部署 | Docker + Gunicorn |
 | 环境配置 | python-dotenv |
@@ -36,14 +40,22 @@ classmates/
 │   ├── core/                # 核心业务应用
 │   │   ├── migrations/      # 数据库迁移文件
 │   │   ├── templates/core/  # HTML 模板
+│   │   │   ├── error_403.html   # 403 错误页面
+│   │   │   ├── error_404.html   # 404 错误页面
+│   │   │   └── error_500.html   # 500 错误页面
 │   │   ├── static/core/     # 静态资源（CSS、上传文件）
 │   │   ├── models.py        # 数据模型
 │   │   ├── views.py         # 视图函数
 │   │   ├── urls.py          # URL 路由
+│   │   ├── middleware.py    # 全局异常处理中间件
+│   │   ├── redis_service.py # Redis 服务封装（验证码）
 │   │   └── utils.py         # 工具函数
 │   └── manage.py            # Django 管理脚本
 ├── deploy/
 │   └── Dockerfile           # Docker 镜像构建文件
+├── logs/                    # 日志目录
+│   ├── error.log            # 错误日志
+│   └── security.log         # 安全日志
 ├── docs/                    # 项目文档
 ├── docker-compose.yml       # Docker Compose 配置
 ├── .env.example             # 环境变量模板
@@ -57,18 +69,42 @@ classmates/
 
 - Python 3.12+
 - PostgreSQL 14+
+- Redis 7+（用于验证码存储）
 - pip
 
-### 本地开发
+### 1. 安装 Redis
 
-**1. 克隆项目**
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install -y redis-server
+sudo systemctl start redis-server
+sudo systemctl enable redis-server
+redis-cli ping  # 验证，应返回 PONG
+```
+
+**CentOS/RHEL:**
+```bash
+sudo yum install -y redis
+sudo systemctl start redis
+sudo systemctl enable redis
+```
+
+**Windows (WSL):**
+```bash
+# 在 WSL 中执行上面的 Ubuntu 命令
+```
+
+### 2. 本地开发
+
+**克隆项目**
 
 ```bash
 git clone https://github.com/class-23/classmates.git
-cdcd classmates
+cd classmates
 ```
 
-**2. 创建虚拟环境并安装依赖**
+**创建虚拟环境并安装依赖**
 
 ```bash
 # Windows PowerShell
@@ -77,7 +113,7 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
-**3. 配置环境变量**
+**配置环境变量**
 
 ```bash
 # Windows PowerShell
@@ -98,22 +134,26 @@ DB_PORT=5432
 EMAIL_HOST=smtp.qq.com
 EMAIL_HOST_USER=your-email@example.com
 EMAIL_HOST_PASSWORD=your-email-auth-code
+
+# Redis 配置（默认即可）
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
 ```
 
-**4. 数据库迁移**
+**数据库迁移**
 
 ```bash
 cd backend
 python manage.py migrate
 ```
 
-**5. 创建管理员账户（可选）**
+**创建管理员账户（可选）**
 
 ```bash
 python manage.py createsuperuser
 ```
 
-**6. 启动开发服务器**
+**启动开发服务器**
 
 ```bash
 # 方式一：使用项目入口
@@ -151,7 +191,7 @@ cp .env.example .env
 ### 3. 一键启动
 
 ```bash
-# 构建并启动所有服务
+# 构建并启动所有服务（包含 Web、PostgreSQL、Redis）
 docker compose up -d --build
 ```
 
@@ -160,6 +200,7 @@ docker compose up -d --build
 ```bash
 docker compose ps
 docker compose logs -f web
+docker compose logs -f redis
 ```
 
 ### 5. 常用命令
@@ -177,6 +218,9 @@ docker compose up -d --build
 # 查看数据库容器日志
 docker compose logs -f db
 
+# 查看 Redis 容器日志
+docker compose logs -f redis
+
 # 进入 Web 容器
 docker compose exec web bash
 
@@ -185,12 +229,16 @@ docker compose exec web python manage.py migrate
 
 # 收集静态文件
 docker compose exec web python manage.py collectstatic --noinput
+
+# 测试 Redis 连接
+docker compose exec redis redis-cli ping
 ```
 
 ### 6. 数据持久化
 
 Docker 卷自动持久化以下数据：
 - `pgdata`: PostgreSQL 数据库数据
+- `redis_data`: Redis 数据
 - `media_data`: 用户上传的媒体文件
 - `static_data`: Django 静态文件
 
@@ -200,9 +248,10 @@ Docker 卷自动持久化以下数据：
 - [ ] 设置 `DJANGO_DEBUG=false`
 - [ ] 指定 `DJANGO_ALLOWED_HOSTS` 为实际域名
 - [ ] 设置安全的 `DB_PASSWORD`
+- [ ] 设置安全的 `REDIS_PASSWORD`（如需）
 - [ ] 配置 HTTPS 反向代理（Nginx/Caddy）
 - [ ] 启用防火墙，仅开放必要端口
-- [ ] 定期备份数据库和媒体文件
+- [ ] 定期备份数据库和 Redis 数据
 
 ## 📖 使用指南
 
@@ -233,11 +282,14 @@ Docker 卷自动持久化以下数据：
 
 ## 🔐 安全说明
 
-- 注册流程采用邮箱验证码验证
+- 注册流程采用邮箱验证码验证（Redis 存储，5分钟自动过期）
+- 验证码一次性使用，验证成功后立即删除
 - 用户密码使用 Django PBKDF2 加密存储
 - 会话有效期默认为 7 天
 - 生产环境强制 HTTPS 传输
 - CSRF 保护已启用
+- 全局异常处理，不暴露敏感信息
+- 详细的错误日志和安全日志记录
 
 ## ⚙️ 环境变量说明
 
@@ -252,9 +304,17 @@ Docker 卷自动持久化以下数据：
 | `DB_PASSWORD` | 数据库密码 | - |
 | `DB_HOST` | 数据库主机 | `127.0.0.1` |
 | `DB_PORT` | 数据库端口 | `5432` |
+| `EMAIL_BACKEND` | 邮件后端 | `smtp.EmailBackend` |
 | `EMAIL_HOST` | SMTP 服务器 | `smtp.qq.com` |
+| `EMAIL_PORT` | SMTP 端口 | `465` |
+| `EMAIL_USE_SSL` | 使用 SSL | `true` |
 | `EMAIL_HOST_USER` | 发件邮箱 | - |
 | `EMAIL_HOST_PASSWORD` | 邮箱授权码 | - |
+| `EMAIL_TIMEOUT` | 邮件超时（秒） | `10` |
+| `REDIS_HOST` | Redis 主机 | `127.0.0.1` |
+| `REDIS_PORT` | Redis 端口 | `6379` |
+| `REDIS_PASSWORD` | Redis 密码 | 空 |
+| `REDIS_DB` | Redis 数据库索引 | `0` |
 | `SESSION_COOKIE_AGE` | 会话有效期（秒） | `604800` |
 
 ## 📝 开发命令
@@ -275,6 +335,56 @@ python manage.py shell
 # 收集静态文件（生产部署）
 python manage.py collectstatic --noinput
 ```
+
+## 🔍 故障排查
+
+### 查看日志
+
+```bash
+# 查看错误日志
+tail -f logs/error.log
+
+# 查看安全日志
+tail -f logs/security.log
+
+# Docker 环境
+docker compose logs -f web
+```
+
+### 常见问题
+
+**1. 发送验证码无反应**
+- 检查 Redis 是否运行：`redis-cli ping`
+- 检查 SMTP 配置是否正确
+- 查看错误日志获取详细信息
+
+**2. 数据库连接失败**
+- 确保 PostgreSQL 服务正在运行
+- 检查 `.env` 中的数据库配置
+- 执行 `python manage.py migrate` 创建表
+
+**3. 500 错误页面**
+- 查看 `logs/error.log` 获取异常详情
+- 检查数据库迁移是否已执行
+- 检查文件权限（媒体文件、日志目录）
+
+**4. Redis 连接失败**
+- 安装 Redis：`apt-get install redis-server`
+- 启动 Redis：`systemctl start redis-server`
+- 如果暂时无法使用 Redis，系统会降级为内存存储
+
+### 开发模式（调试用）
+
+如果暂时不想配置真实邮箱，可以使用 console 后端：
+
+```bash
+# 修改 .env
+EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+```
+
+此时发送验证码时：
+- 接口返回 `验证码已生成（开发模式）：XXXXXX`
+- 验证码直接显示在服务器控制台
 
 ## 🗺️ URL 路由结构
 
