@@ -18,5 +18,5 @@ COPY . .
 RUN python backend/manage.py collectstatic --noinput --settings=config.settings 2>/dev/null || true
 
 # 启动
-EXPOSE 8000
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--chdir", "backend", "--workers", "4"]
+EXPOSE 2323
+CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:2323", "--chdir", "backend", "--workers", "4"]

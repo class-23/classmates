@@ -14,7 +14,7 @@ docker compose up -d --build
 docker exec classmates-web python manage.py migrate
 
 # 4. 访问
-http://localhost:8000/
+http://localhost:2323/
 ```
 
 ## 方式二：非 Docker
@@ -39,7 +39,7 @@ pip install -r requirements.txt
 # 5. 迁移并启动
 cd backend
 python manage.py migrate
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:2323
 
 # 或从项目根目录
 python main.py

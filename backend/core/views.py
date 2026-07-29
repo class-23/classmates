@@ -330,7 +330,9 @@ def fill_form(request, share_code):
         # 处理上传文件
         _handle_uploaded_files(student, request)
 
-        return redirect('fill_success', share_code=share_code, code=student.edit_code)
+        from django.urls import reverse
+        url = reverse('fill_success', kwargs={'share_code': share_code})
+        return redirect(f'{url}?code={student.edit_code}')
 
     zodiac_choices = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪']
     constellation_choices = [

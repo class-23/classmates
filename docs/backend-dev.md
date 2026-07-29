@@ -949,7 +949,7 @@ python manage.py migrate
 # 5. 启动
 python main.py
 # 或
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:2323
 ```
 
 ---

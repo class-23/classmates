@@ -26,7 +26,7 @@ services:
     container_name: classmates-web
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "2323:2323"
     env_file:
       - .env
     depends_on:
