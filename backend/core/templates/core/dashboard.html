@@ -22,7 +22,7 @@
     {% if notebooks %}
     <div class="grid grid-auto">
         {% for notebook in notebooks %}
-        <div class="student-card animate-slide-up stagger-{{ forloop.counter }}" onclick="location.href='{% url 'notebook_detail' notebook.id %}'" style="cursor: pointer;">
+        <div class="student-card animate-slide-up stagger-{{ forloop.counter }}" onclick="location.href='{% url 'notebook_detail' notebook.title_slug %}'" style="cursor: pointer;">
             <div class="student-card-header">
                 <div class="student-avatar" style="background: linear-gradient(135deg, #E11D48, #FB7185);">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -46,8 +46,8 @@
             </div>
             <div style="margin-top: var(--space-md); display: flex; gap: var(--space-sm); flex-wrap: wrap;">
                 <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); copyToClipboard('{{ request.scheme }}://{{ request.get_host }}{% url 'fill_form' notebook.share_code %}', this);">📋 复制分享链接</button>
-                <a href="{% url 'notebook_trash' notebook.id %}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">🗑 回收站</a>
-                <button class="btn btn-ghost btn-sm" style="color: var(--color-destructive);" onclick="event.stopPropagation(); showDeleteNotebookModal({{ notebook.id }}, '{{ notebook.title|escapejs }}')">✕ 删除</button>
+                <a href="{% url 'notebook_trash' notebook.title_slug %}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">🗑 回收站</a>
+                <button class="btn btn-ghost btn-sm" style="color: var(--color-destructive);" onclick="event.stopPropagation(); showDeleteNotebookModal('{{ notebook.title_slug }}', '{{ notebook.title|escapejs }}')">✕ 删除</button>
             </div>
         </div>
         {% endfor %}
@@ -89,9 +89,9 @@
 
 {% block extra_scripts %}
 <script>
-function showDeleteNotebookModal(id, title) {
+function showDeleteNotebookModal(slug, title) {
     document.getElementById('deleteNotebookName').textContent = title;
-    document.getElementById('deleteNotebookForm').action = '/notebook/' + id + '/delete/';
+    document.getElementById('deleteNotebookForm').action = '/notebook/' + slug + '/delete/';
     document.getElementById('deleteNotebookModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }

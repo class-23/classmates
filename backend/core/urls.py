@@ -15,14 +15,15 @@ urlpatterns = [
     # 同学录 CRUD
     path('dashboard/', views.dashboard, name='dashboard'),
     path('notebook/create/', views.notebook_create, name='notebook_create'),
-    path('notebook/<int:notebook_id>/delete/', views.notebook_delete, name='notebook_delete'),
-    path('notebook/<int:notebook_id>/', views.notebook_detail, name='notebook_detail'),
-    path('notebook/<int:notebook_id>/search/', views.notebook_search, name='notebook_search'),
-    path('notebook/<int:notebook_id>/delete/<int:student_id>/', views.delete_student, name='delete_student'),
-    path('notebook/<int:notebook_id>/restore/<int:student_id>/', views.restore_student, name='restore_student'),
-    path('notebook/<int:notebook_id>/hard-delete/<int:student_id>/', views.hard_delete_student, name='hard_delete_student'),
-    path('notebook/<int:notebook_id>/trash/', views.notebook_trash, name='notebook_trash'),
-    path('notebook/<int:notebook_id>/empty-trash/', views.empty_trash, name='empty_trash'),
+    path('notebook/<str:notebook_slug>/delete/', views.notebook_delete, name='notebook_delete'),
+    path('notebook/<str:notebook_slug>/', views.notebook_detail, name='notebook_detail'),
+    path('notebook/<str:notebook_slug>/search/', views.notebook_search, name='notebook_search'),
+    path('notebook/<str:notebook_slug>/delete-student/<str:student_slug>/', views.delete_student, name='delete_student'),
+    path('notebook/<str:notebook_slug>/restore/<str:student_slug>/', views.restore_student, name='restore_student'),
+    path('notebook/<str:notebook_slug>/hard-delete/<str:student_slug>/', views.hard_delete_student, name='hard_delete_student'),
+    path('notebook/<str:notebook_slug>/trash/', views.notebook_trash, name='notebook_trash'),
+    path('notebook/<str:notebook_slug>/empty-trash/', views.empty_trash, name='empty_trash'),
+    path('notebook/<str:notebook_slug>/<str:student_slug>/', views.student_detail, name='student_detail'),
 
     # 分享与填写
     path('join/<uuid:share_code>/', views.fill_form, name='fill_form'),
@@ -30,7 +31,4 @@ urlpatterns = [
 
     # 编辑
     path('edit/<str:edit_code>/', views.edit_form, name='edit_form'),
-
-    # 同学详情
-    path('student/<int:student_id>/', views.student_detail, name='student_detail'),
 ]

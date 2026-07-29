@@ -28,6 +28,7 @@ class Notebook(models.Model):
         related_name='notebooks', verbose_name='创建者'
     )
     title = models.CharField(max_length=100, verbose_name='同学录名称')
+    title_slug = models.SlugField(max_length=100, unique=True, null=True, blank=True, verbose_name='名称标识', allow_unicode=True)
     share_code = models.UUIDField(
         unique=True, default=uuid.uuid4, editable=False,
         verbose_name='分享标识'
@@ -42,6 +43,26 @@ class Notebook(models.Model):
 
     def __str__(self):
         return f'{self.title}（{self.owner.email}）'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_title = self.title
+
+    def save(self, *args, **kwargs):
+        if not self.title_slug or self.title != self._original_title:
+            self.title_slug = self._generate_title_slug()
+            self._original_title = self.title
+        super().save(*args, **kwargs)
+
+    def _generate_title_slug(self):
+        """生成唯一的title_slug"""
+        slug = self.title
+        counter = 1
+        base_slug = slug
+        while Notebook.objects.filter(title_slug=slug).exclude(pk=self.pk).exists():
+            counter += 1
+            slug = f'{base_slug}-{counter}'
+        return slug
 
 
 class Student(models.Model):
@@ -60,6 +81,7 @@ class Student(models.Model):
     is_deleted = models.BooleanField(default=False, verbose_name='是否删除')
     deleted_at = models.DateTimeField(null=True, blank=True, verbose_name='删除时间')
     restore_deadline = models.DateTimeField(null=True, blank=True, verbose_name='还原截止时间')
+    name_slug = models.SlugField(max_length=100, null=True, blank=True, verbose_name='姓名标识', allow_unicode=True)
 
     # 必填字段（7个）
     name = models.CharField(max_length=50, verbose_name='名字')
@@ -102,6 +124,28 @@ class Student(models.Model):
 
     def __str__(self):
         return f'{self.name}（{self.notebook.title}）'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_name = self.name
+
+    def save(self, *args, **kwargs):
+        if not self.name_slug or self.name != self._original_name:
+            self.name_slug = self._generate_name_slug()
+            self._original_name = self.name
+        super().save(*args, **kwargs)
+
+    def _generate_name_slug(self):
+        """生成唯一的name_slug（在同一notebook内唯一）"""
+        slug = self.name
+        counter = 1
+        base_slug = slug
+        while Student.objects.filter(
+            notebook=self.notebook, name_slug=slug
+        ).exclude(pk=self.pk).exists():
+            counter += 1
+            slug = f'{base_slug}-{counter}'
+        return slug
 
     def generate_edit_code(self):
         self.edit_code = secrets.token_urlsafe(16)

@@ -8,7 +8,7 @@
     <div class="animate-fade-in" style="max-width: 640px; margin: 0 auto;">
         <!-- Header -->
         <div style="margin-bottom: var(--space-xl);">
-            <a href="{% url 'notebook_detail' notebook.id %}" class="btn btn-ghost btn-sm" style="margin-bottom: var(--space-md);">
+            <a href="{% url 'notebook_detail' notebook.title_slug %}" class="btn btn-ghost btn-sm" style="margin-bottom: var(--space-md);">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                 返回 {{ notebook.title }}
             </a>
@@ -37,11 +37,11 @@
                     </span>
                 </div>
                 <div class="trash-item-actions">
-                    <form method="post" action="{% url 'restore_student' notebook.id item.id %}">
+                    <form method="post" action="{% url 'restore_student' notebook.title_slug item.name_slug %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-secondary btn-sm">♻️ 还原</button>
                     </form>
-                    <button type="button" class="btn btn-ghost btn-sm" style="color: var(--color-destructive);" onclick="showHardDeleteModal({{ item.id }}, '{{ item.name }}')">
+                    <button type="button" class="btn btn-ghost btn-sm" style="color: var(--color-destructive);" onclick="showHardDeleteModal('{{ item.name_slug }}', '{{ item.name }}')">
                         🗑 永久删除
                     </button>
                 </div>
@@ -65,7 +65,7 @@
                 </svg>
                 <h3>回收站是空的</h3>
                 <p>删除的同学信息会出现在这里，10天内可还原</p>
-                <a href="{% url 'notebook_detail' notebook.id %}" class="btn btn-secondary">返回同学录</a>
+                <a href="{% url 'notebook_detail' notebook.title_slug %}" class="btn btn-secondary">返回同学录</a>
             </div>
         </div>
         {% endif %}
@@ -96,7 +96,7 @@
         <p class="text-sm mt-sm" style="opacity: 0.5;">所有记录将被永久删除，不可撤销</p>
         <div class="modal-actions">
             <button class="btn btn-secondary" onclick="closeEmptyTrashModal()">取消</button>
-            <form method="post" action="{% url 'empty_trash' notebook.id %}">
+            <form method="post" action="{% url 'empty_trash' notebook.title_slug %}">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">确认清空</button>
             </form>
@@ -108,9 +108,9 @@
 {% block extra_scripts %}
 <script>
 // Hard Delete Modal
-function showHardDeleteModal(id, name) {
+function showHardDeleteModal(slug, name) {
     document.getElementById('hardDeleteName').textContent = name;
-    document.getElementById('hardDeleteForm').action = '/notebook/{{ notebook.id }}/hard-delete/' + id + '/';
+    document.getElementById('hardDeleteForm').action = '/notebook/{{ notebook.title_slug }}/hard-delete/' + slug + '/';
     document.getElementById('hardDeleteModal').style.display = 'flex';
 }
 

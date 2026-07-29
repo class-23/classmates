@@ -17,7 +17,7 @@
             <h1>{{ notebook.title }}</h1>
             <p class="text-sm" style="opacity: 0.6; margin-top: 4px;">
                 共 {{ students|length }} 位同学已填写 ·
-                <a href="{% url 'notebook_trash' notebook.id %}" style="opacity: 0.6;">回收站</a>
+                <a href="{% url 'notebook_trash' notebook.title_slug %}" style="opacity: 0.6;">回收站</a>
             </p>
         </div>
         <div class="flex items-center gap-sm" style="flex-wrap: wrap;">
@@ -40,7 +40,7 @@
     {% if students %}
     <div class="grid grid-auto" id="studentGrid">
         {% for student in students %}
-        <div class="student-card animate-slide-up stagger-{{ forloop.counter }} student-card-item" data-name="{{ student.name }}" onclick="location.href='{% url 'student_detail' student.id %}'">
+        <div class="student-card animate-slide-up stagger-{{ forloop.counter }} student-card-item" data-name="{{ student.name }}" onclick="location.href='{% url 'student_detail' notebook.title_slug student.name_slug %}'">
             <div class="student-card-header">
                 <div class="student-avatar">{{ student.name|first }}</div>
                 <div>
@@ -67,7 +67,7 @@
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                     <span>{{ student.created_at|date:"Y-m-d" }}</span>
                 </div>
-                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); showDeleteModal({{ student.id }}, '{{ student.name }}')" style="color: var(--color-destructive);">
+                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); showDeleteModal('{{ student.name_slug }}', '{{ student.name }}')" style="color: var(--color-destructive);">
                     🗑 删除
                 </button>
             </div>
@@ -137,9 +137,9 @@ function searchStudents(query) {
 }
 
 // Delete Modal
-function showDeleteModal(id, name) {
+function showDeleteModal(slug, name) {
     document.getElementById('deleteName').textContent = name;
-    document.getElementById('deleteForm').action = '/notebook/{{ notebook.id }}/delete/' + id + '/';
+    document.getElementById('deleteForm').action = '/notebook/{{ notebook.title_slug }}/delete-student/' + slug + '/';
     document.getElementById('deleteModal').style.display = 'flex';
 }
 

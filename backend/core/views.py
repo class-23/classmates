@@ -143,12 +143,12 @@ def dashboard(request):
 
 
 @login_required
-def notebook_delete(request, notebook_id):
+def notebook_delete(request, notebook_slug):
     """删除整本同学录（级联删除所有数据 + 清理磁盘文件）"""
     if request.method != 'POST':
         return redirect('dashboard')
 
-    notebook = get_object_or_404(Notebook, id=notebook_id)
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if notebook.owner != request.user:
         messages.error(request, '你没有权限删除该同学录')
         return redirect('dashboard')
@@ -175,7 +175,7 @@ def notebook_create(request):
             return render(request, 'core/notebook_create.html')
         notebook = Notebook.objects.create(owner=request.user, title=title)
         messages.success(request, f'「{title}」创建成功！')
-        return redirect('notebook_detail', notebook_id=notebook.id)
+        return redirect('notebook_detail', notebook_slug=notebook.title_slug)
     return render(request, 'core/notebook_create.html')
 
 
@@ -188,9 +188,9 @@ def _check_owner(request, notebook):
 
 
 @login_required
-def notebook_detail(request, notebook_id):
+def notebook_detail(request, notebook_slug):
     """同学录详情 - 学生列表 + 搜索"""
-    notebook = get_object_or_404(Notebook, id=notebook_id)
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if not _check_owner(request, notebook):
         return redirect('dashboard')
 
@@ -207,9 +207,9 @@ def notebook_detail(request, notebook_id):
 
 
 @login_required
-def notebook_search(request, notebook_id):
+def notebook_search(request, notebook_slug):
     """搜索（AJAX）"""
-    notebook = get_object_or_404(Notebook, id=notebook_id)
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if not _check_owner(request, notebook):
         return JsonResponse({'code': 403, 'message': '无权限'})
 
@@ -220,14 +220,14 @@ def notebook_search(request, notebook_id):
     students = students.order_by('name')
 
     data = [{'id': s.id, 'name': s.name, 'nickname': s.nickname,
-             'phone': s.phone, 'wechat': s.wechat} for s in students]
+             'phone': s.phone, 'wechat': s.wechat, 'name_slug': s.name_slug} for s in students]
     return JsonResponse({'code': 200, 'data': data})
 
 
 @login_required
-def notebook_trash(request, notebook_id):
+def notebook_trash(request, notebook_slug):
     """回收站"""
-    notebook = get_object_or_404(Notebook, id=notebook_id)
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if not _check_owner(request, notebook):
         return redirect('dashboard')
 
@@ -242,66 +242,66 @@ def notebook_trash(request, notebook_id):
 
 
 @login_required
-def delete_student(request, notebook_id, student_id):
+def delete_student(request, notebook_slug, student_slug):
     """软删除同学信息"""
     if request.method != 'POST':
-        return redirect('notebook_detail', notebook_id=notebook_id)
+        return redirect('notebook_detail', notebook_slug=notebook_slug)
 
-    notebook = get_object_or_404(Notebook, id=notebook_id)
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if not _check_owner(request, notebook):
         return redirect('dashboard')
 
-    student = get_object_or_404(Student, id=student_id, notebook=notebook)
+    student = get_object_or_404(Student, name_slug=student_slug, notebook=notebook)
     student.soft_delete()
     messages.success(request, f'已删除「{student.name}」的信息，可在回收站找回')
 
     referer = request.META.get('HTTP_REFERER', '')
     if 'trash' in referer:
-        return redirect('notebook_trash', notebook_id=notebook_id)
-    return redirect('notebook_detail', notebook_id=notebook_id)
+        return redirect('notebook_trash', notebook_slug=notebook_slug)
+    return redirect('notebook_detail', notebook_slug=notebook_slug)
 
 
 @login_required
-def restore_student(request, notebook_id, student_id):
+def restore_student(request, notebook_slug, student_slug):
     """从回收站还原"""
     if request.method != 'POST':
-        return redirect('notebook_trash', notebook_id=notebook_id)
+        return redirect('notebook_trash', notebook_slug=notebook_slug)
 
-    notebook = get_object_or_404(Notebook, id=notebook_id)
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if not _check_owner(request, notebook):
         return redirect('dashboard')
 
-    student = get_object_or_404(Student, id=student_id, notebook=notebook, is_deleted=True)
+    student = get_object_or_404(Student, name_slug=student_slug, notebook=notebook, is_deleted=True)
     student.restore()
     messages.success(request, f'已还原「{student.name}」的信息')
-    return redirect('notebook_trash', notebook_id=notebook_id)
+    return redirect('notebook_trash', notebook_slug=notebook_slug)
 
 
 @login_required
-def hard_delete_student(request, notebook_id, student_id):
+def hard_delete_student(request, notebook_slug, student_slug):
     """永久删除（含文件）"""
     if request.method != 'POST':
-        return redirect('notebook_trash', notebook_id=notebook_id)
+        return redirect('notebook_trash', notebook_slug=notebook_slug)
 
-    notebook = get_object_or_404(Notebook, id=notebook_id)
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if not _check_owner(request, notebook):
         return redirect('dashboard')
 
-    student = get_object_or_404(Student, id=student_id, notebook=notebook, is_deleted=True)
+    student = get_object_or_404(Student, name_slug=student_slug, notebook=notebook, is_deleted=True)
     name = student.name
     delete_media_files(student.media_files.all())
     student.delete()
     messages.success(request, f'已永久删除「{name}」的信息')
-    return redirect('notebook_trash', notebook_id=notebook_id)
+    return redirect('notebook_trash', notebook_slug=notebook_slug)
 
 
 @login_required
-def empty_trash(request, notebook_id):
+def empty_trash(request, notebook_slug):
     """清空回收站"""
     if request.method != 'POST':
-        return redirect('notebook_trash', notebook_id=notebook_id)
+        return redirect('notebook_trash', notebook_slug=notebook_slug)
 
-    notebook = get_object_or_404(Notebook, id=notebook_id)
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if not _check_owner(request, notebook):
         return redirect('dashboard')
 
@@ -311,7 +311,7 @@ def empty_trash(request, notebook_id):
         delete_media_files(s.media_files.all())
     trash.delete()
     messages.success(request, f'已清空回收站，共清理 {count} 条记录')
-    return redirect('notebook_trash', notebook_id=notebook_id)
+    return redirect('notebook_trash', notebook_slug=notebook_slug)
 
 
 # ===== 分享与填写 =====
@@ -406,12 +406,13 @@ def edit_form(request, edit_code):
 # ===== 同学详情 =====
 
 @login_required
-def student_detail(request, student_id):
+def student_detail(request, notebook_slug, student_slug):
     """查看单个同学详情"""
-    student = get_object_or_404(Student, id=student_id, is_deleted=False)
-    notebook = student.notebook
+    notebook = get_object_or_404(Notebook, title_slug=notebook_slug)
     if not _check_owner(request, notebook):
         return redirect('dashboard')
+
+    student = get_object_or_404(Student, name_slug=student_slug, notebook=notebook, is_deleted=False)
 
     media_files = MediaFile.objects.filter(student=student).order_by('file_type')
     return render(request, 'core/student_detail.html', {
