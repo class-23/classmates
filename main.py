@@ -10,7 +10,13 @@
 
 import os
 import sys
-import subprocess
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# 加载项目根目录的 .env 文件
+load_dotenv(dotenv_path=Path(__file__).resolve().parent / '.env')
+
 
 def main():
     # 切换到 backend 目录
@@ -19,9 +25,14 @@ def main():
     # 默认配置
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
+    # 从环境变量读取端口，默认 2323
+    host = os.getenv('DJANGO_RUN_HOST', '0.0.0.0')
+    port = os.getenv('DJANGO_RUN_PORT', '2323')
+
     # 执行 Django 开发服务器
     from django.core.management import execute_from_command_line
-    execute_from_command_line(["manage.py", "runserver", "0.0.0.0:8000"])
+    execute_from_command_line(["manage.py", "runserver", f"{host}:{port}"])
+
 
 if __name__ == "__main__":
     main()

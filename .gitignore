@@ -1,0 +1,61 @@
+# ===== 环境配置 =====
+.env
+.env.local
+.env.*.local
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.whl
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+env/
+ENV/
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ===== Django =====
+*.log
+db.sqlite3
+db.sqlite3-journal
+
+# ===== 用户上传文件 =====
+backend/core/static/core/uploads/*
+!backend/core/static/core/uploads/.gitkeep
+
+# ===== 静态文件收集 =====
+backend/staticfiles/
+
+# ===== 日志 =====
+*.log
+logs/
+
+# ===== 临时文件 =====
+/tmp/
