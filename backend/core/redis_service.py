@@ -44,6 +44,8 @@ class VerificationCodeService:
     EXPIRE_SECONDS = 300
     # 发送间隔（秒）- 60秒
     SEND_INTERVAL = 60
+    # 固定测试验证码（开发用）
+    TEST_CODE = '888888'
     
     @classmethod
     def _make_key(cls, email):
@@ -100,6 +102,11 @@ class VerificationCodeService:
         Returns:
             tuple: (success: bool, message: str)
         """
+        # 固定测试验证码（开发用）
+        if code == cls.TEST_CODE:
+            logger.info(f'使用测试验证码验证成功: email={email}')
+            return True, '验证码正确'
+        
         client = get_redis_client()
         key = cls._make_key(email)
         

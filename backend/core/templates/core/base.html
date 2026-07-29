@@ -61,13 +61,61 @@
     </main>
 
     <script>
-        // Copy to clipboard utility
+        // Copy to clipboard utility（兼容多种浏览器环境）
         function copyToClipboard(text, btn) {
-            navigator.clipboard.writeText(text).then(() => {
-                const original = btn.innerHTML;
+            const original = btn.innerHTML;
+            const showSuccess = () => {
                 btn.innerHTML = '✓ 已复制';
-                setTimeout(() => { btn.innerHTML = original; }, 2000);
-            });
+                btn.style.color = 'var(--color-success, #10b981)';
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.style.color = '';
+                }, 2000);
+            };
+            const showError = (msg) => {
+                btn.innerHTML = '✗ 复制失败';
+                btn.style.color = 'var(--color-destructive, #ef4444)';
+                setTimeout(() => {
+                    btn.innerHTML = original;
+                    btn.style.color = '';
+                    if (msg) alert(msg);
+                }, 2000);
+            };
+
+            // 方法1: 使用 Clipboard API（现代浏览器）
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(showSuccess).catch(() => {
+                    // 降级到方法2
+                    fallbackCopyText(text, btn, showSuccess, showError);
+                });
+            } else {
+                // 方法2: 使用 execCommand（兼容性更好）
+                fallbackCopyText(text, btn, showSuccess, showError);
+            }
+        }
+
+        // 降级复制方法：创建临时 textarea
+        function fallbackCopyText(text, btn, showSuccess, showError) {
+            try {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.left = '-9999px';
+                textarea.style.top = '0';
+                textarea.setAttribute('readonly', '');
+                document.body.appendChild(textarea);
+                textarea.select();
+                textarea.setSelectionRange(0, textarea.value.length);
+                const success = document.execCommand('copy');
+                document.body.removeChild(textarea);
+                if (success) {
+                    showSuccess();
+                } else {
+                    showError('复制失败，请手动复制');
+                }
+            } catch (err) {
+                showError('复制失败，请手动复制');
+            }
         }
 
         // Auto-dismiss alerts
