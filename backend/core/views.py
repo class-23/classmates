@@ -1,5 +1,6 @@
 """同学录 - 全部视图函数"""
 import json
+import logging
 from datetime import timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
@@ -8,10 +9,11 @@ from django.contrib import messages
 from django.utils import timezone
 from django.http import JsonResponse
 from django.db.models import Q, Count
-from django.conf import settings
 
-from .models import User, Notebook, Student, MediaFile, VerificationCode
-from .utils import generate_verification_code, send_verification_email, delete_media_files
+from .models import User, Notebook, Student, MediaFile
+from .utils import generate_verification_code, send_verification_email, delete_media_files, save_verification_code, verify_verification_code
+
+logger = logging.getLogger(__name__)
 
 
 # ===== 公开页面 =====
@@ -44,14 +46,11 @@ def register(request):
         if password != confirm:
             errors.append('两次密码不一致')
 
-        # 校验验证码
+        # 校验验证码（使用 Redis）
         if not errors:
-            vc = VerificationCode.objects.filter(
-                email=email, code=code,
-                is_used=False, expires_at__gt=timezone.now()
-            ).last()
-            if not vc:
-                errors.append('验证码无效或已过期')
+            verify_success, verify_msg = verify_verification_code(email, code)
+            if not verify_success:
+                errors.append(verify_msg)
 
         if errors:
             for e in errors:
@@ -59,8 +58,6 @@ def register(request):
             return render(request, 'core/register.html')
 
         # 创建用户
-        vc.is_used = True
-        vc.save()
         user = User.objects.create_user(
             username=email, email=email, password=password
         )
@@ -96,7 +93,7 @@ def user_logout(request):
 # ===== API =====
 
 def send_verification_code(request):
-    """发送邮箱验证码（AJAX）"""
+    """发送邮箱验证码（AJAX）- 使用 Redis 存储"""
     if request.method != 'POST':
         return JsonResponse({'code': 400, 'message': '仅支持POST请求'})
 
@@ -112,23 +109,20 @@ def send_verification_code(request):
     if User.objects.filter(email=email).exists():
         return JsonResponse({'code': 400, 'message': '该邮箱已被注册'})
 
-    # 60秒防刷
-    last = VerificationCode.objects.filter(email=email).order_by('-created_at').first()
-    if last and (timezone.now() - last.created_at).total_seconds() < 60:
-        return JsonResponse({'code': 400, 'message': '请60秒后再试'})
-
     code = generate_verification_code()
-    VerificationCode.objects.create(
-        email=email, code=code,
-        expires_at=timezone.now() + timedelta(minutes=5)
-    )
+    
+    # 保存验证码到 Redis（5分钟过期，自动处理发送间隔）
+    save_success, save_msg = save_verification_code(email, code)
+    if not save_success:
+        return JsonResponse({'code': 400, 'message': save_msg})
 
-    try:
-        send_verification_email(email, code)
-    except Exception as e:
-        return JsonResponse({'code': 500, 'message': f'邮件发送失败: {str(e)}'})
-
-    return JsonResponse({'code': 200, 'message': '验证码已发送'})
+    # 发送邮件（返回 tuple: success, message）
+    success, message = send_verification_email(email, code)
+    if success:
+        return JsonResponse({'code': 200, 'message': message})
+    else:
+        logger.warning(f'验证码发送失败: {message}')
+        return JsonResponse({'code': 500, 'message': message})
 
 
 # ===== 同学录 CRUD =====

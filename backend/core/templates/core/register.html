@@ -66,28 +66,55 @@
 {% block extra_scripts %}
 <script>
 var countdown = 0;
+var isSending = false;
+
 function sendCode() {
     var btn = document.getElementById('sendCodeBtn');
     var email = document.getElementById('email').value.trim();
+    
     if (!email || !email.includes('@')) {
         alert('请先输入有效的邮箱地址');
         return;
     }
     if (countdown > 0) return;
+    if (isSending) return;
 
+    isSending = true;
     btn.disabled = true;
     btn.textContent = '发送中...';
+
+    // 获取 CSRF token
+    var csrfToken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() {
+        controller.abort();
+    }, 15000); // 15秒超时
 
     fetch('/api/send-verification-code/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
         },
-        body: JSON.stringify({ email: email })
+        body: JSON.stringify({ email: email }),
+        signal: controller.signal
     })
-    .then(r => r.json())
-    .then(data => {
+    .then(function(response) {
+        clearTimeout(timeoutId);
+        // 先检查响应类型
+        var contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+            // 不是 JSON 响应，可能是 HTML 错误页面
+            return response.text().then(function(html) {
+                throw new Error('服务器返回了错误页面，请检查服务端日志');
+            });
+        }
+        return response.json();
+    })
+    .then(function(data) {
+        isSending = false;
         if (data.code === 200) {
             countdown = 60;
             btn.textContent = countdown + 's';
@@ -100,17 +127,51 @@ function sendCode() {
                     btn.textContent = '重新发送';
                 }
             }, 1000);
+            // 显示成功消息
+            showMessage(data.message || '验证码已发送，请查收邮箱', 'success');
         } else {
-            alert(data.message || '发送失败，请重试');
+            showMessage(data.message || '发送失败，请重试', 'error');
             btn.disabled = false;
             btn.textContent = '发送验证码';
         }
     })
-    .catch(function() {
-        alert('网络错误，请重试');
+    .catch(function(err) {
+        clearTimeout(timeoutId);
+        isSending = false;
         btn.disabled = false;
         btn.textContent = '发送验证码';
+        
+        if (err.name === 'AbortError') {
+            showMessage('请求超时，请检查网络连接后重试', 'error');
+        } else {
+            showMessage('发送失败：' + err.message, 'error');
+        }
     });
+}
+
+// 显示消息提示
+function showMessage(msg, type) {
+    // 创建提示元素
+    var toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:white;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:14px;transition:opacity 0.3s;';
+    toast.style.background = type === 'success' ? '#10b981' : '#ef4444';
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    
+    setTimeout(function() {
+        toast.style.opacity = '0';
+        setTimeout(function() {
+            toast.remove();
+        }, 300);
+    }, 3000);
+}
+
+// 获取 Cookie
+function getCookie(name) {
+    var value = '; ' + document.cookie;
+    var parts = value.split('; ' + name + '=');
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return '';
 }
 </script>
 {% endblock %}
