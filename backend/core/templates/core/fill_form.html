@@ -1,0 +1,264 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}填写信息 - {{ notebook.title }} - 同窗录{% endblock %}
+
+{% block extra_blobs %}
+<div class="blob blob-3"></div>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 40px; padding-bottom: 80px;">
+    <div class="animate-fade-in" style="max-width: 640px; margin: 0 auto;">
+        <!-- Header -->
+        <div class="text-center" style="margin-bottom: var(--space-xl);">
+            <div style="width: 72px; height: 72px; border-radius: var(--radius-xl); background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-lg); box-shadow: 6px 6px 16px rgba(225,29,72,0.25);">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <h1>{{ notebook.title }}</h1>
+            <p style="color: var(--color-foreground-light); opacity: 0.7; margin-top: var(--space-sm);">
+                写下你的信息，让老同学们找到你吧！<br>
+                <span class="text-sm">带 <span class="required" style="color: var(--color-primary);">*</span> 的为必填项</span>
+            </p>
+        </div>
+
+        <div class="card">
+            <!-- Edit mode notice -->
+            {% if edit_mode %}
+            <div class="alert alert-info mb-lg">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                编辑模式 · 请在 <strong>{{ deadline }}</strong> 前完成修改
+            </div>
+            {% endif %}
+
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <!-- ===== Required Fields ===== -->
+                <h3 style="margin-bottom: var(--space-lg); font-size: 1.125rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" style="display:inline; vertical-align: middle; margin-right: 6px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    基本信息 <span class="text-sm" style="font-weight: 400; opacity: 0.5;">必填</span>
+                </h3>
+                <div class="form-group">
+                    <label class="form-label" for="name">你的名字 <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" class="form-input" placeholder="输入你的真实姓名" required maxlength="50" value="{{ student.name|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="nickname">你的昵称 <span class="required">*</span></label>
+                    <input type="text" id="nickname" name="nickname" class="form-input" placeholder="大家平时怎么叫你的？" required maxlength="50" value="{{ student.nickname|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="phone">手机号码 <span class="required">*</span></label>
+                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="输入手机号" required maxlength="20" inputmode="tel" value="{{ student.phone|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="wechat">微信号 <span class="required">*</span></label>
+                    <input type="text" id="wechat" name="wechat" class="form-input" placeholder="输入微信号，方便老同学加你" required maxlength="50" value="{{ student.wechat|default:'' }}">
+                    <div class="form-helper">填了微信号，老同学们才能加回来哦！</div>
+                </div>
+
+                <h3 style="margin: var(--space-xl) 0 var(--space-lg); font-size: 1.125rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" style="display:inline; vertical-align: middle; margin-right: 6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    想对TA说 <span class="text-sm" style="font-weight: 400; opacity: 0.5;">必填</span>
+                </h3>
+                <div class="form-group">
+                    <label class="form-label" for="first_impression">对我的第一印象 <span class="required">*</span></label>
+                    <textarea id="first_impression" name="first_impression" class="form-textarea" placeholder="还记得第一次见到我的时候是什么感觉吗？" required>{{ student.first_impression|default:'' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="words_to_me">想对我说的话 <span class="required">*</span></label>
+                    <textarea id="words_to_me" name="words_to_me" class="form-textarea" placeholder="有什么一直想对我说但没机会说的话？" required>{{ student.words_to_me|default:'' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="message">留言 <span class="required">*</span></label>
+                    <textarea id="message" name="message" class="form-textarea tall" placeholder="写下你想对大家说的话吧…" required>{{ student.message|default:'' }}</textarea>
+                </div>
+
+                <!-- ===== Optional Fields ===== -->
+                <h3 style="margin: var(--space-xl) 0 var(--space-lg); font-size: 1.125rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-light)" stroke-width="2" style="display:inline; vertical-align: middle; margin-right: 6px;"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                    联系方式 <span class="text-sm" style="font-weight: 400; opacity: 0.5;">选填</span>
+                </h3>
+                <div class="form-group">
+                    <label class="form-label" for="qq">QQ号</label>
+                    <input type="text" id="qq" name="qq" class="form-input" placeholder="QQ号（选填）" maxlength="20" value="{{ student.qq|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="xiaohongshu">小红书号</label>
+                    <input type="text" id="xiaohongshu" name="xiaohongshu" class="form-input" placeholder="小红书号（选填）" maxlength="100" value="{{ student.xiaohongshu|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="douyin">抖音号</label>
+                    <input type="text" id="douyin" name="douyin" class="form-input" placeholder="抖音号（选填）" maxlength="100" value="{{ student.douyin|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="email_addr">邮箱</label>
+                    <input type="email" id="email_addr" name="email" class="form-input" placeholder="邮箱地址（选填）" maxlength="254" value="{{ student.email|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="address">现在住在哪</label>
+                    <input type="text" id="address" name="address" class="form-input" placeholder="城市 / 地址（选填）" value="{{ student.address|default:'' }}">
+                </div>
+
+                <h3 style="margin: var(--space-xl) 0 var(--space-lg); font-size: 1.125rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-light)" stroke-width="2" style="display:inline; vertical-align: middle; margin-right: 6px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    个人信息 <span class="text-sm" style="font-weight: 400; opacity: 0.5;">选填</span>
+                </h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                    <div class="form-group">
+                        <label class="form-label" for="birthday">生日</label>
+                        <input type="date" id="birthday" name="birthday" class="form-input" value="{{ student.birthday|date:'Y-m-d'|default:'' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="zodiac_sign">生肖</label>
+                        <select id="zodiac_sign" name="zodiac_sign" class="form-select">
+                            <option value="">— 请选择 —</option>
+                            {% for s in zodiac_choices %}
+                            <option value="{{ s }}" {% if student.zodiac_sign == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="constellation">星座</label>
+                        <select id="constellation" name="constellation" class="form-select">
+                            <option value="">— 请选择 —</option>
+                            {% for c in constellation_choices %}
+                            <option value="{{ c }}" {% if student.constellation == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="hobbies">兴趣爱好</label>
+                    <textarea id="hobbies" name="hobbies" class="form-textarea" placeholder="平时喜欢做什么？有什么爱好？（选填）">{{ student.hobbies|default:'' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="motto">座右铭</label>
+                    <input type="text" id="motto" name="motto" class="form-input" placeholder="你最喜欢的一句话是什么？（选填）" value="{{ student.motto|default:'' }}">
+                </div>
+
+                <h3 style="margin: var(--space-xl) 0 var(--space-lg); font-size: 1.125rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-light)" stroke-width="2" style="display:inline; vertical-align: middle; margin-right: 6px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    心情与回忆 <span class="text-sm" style="font-weight: 400; opacity: 0.5;">选填</span>
+                </h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md);">
+                    <div class="form-group">
+                        <label class="form-label" for="crush">学生时代喜欢过谁</label>
+                        <input type="text" id="crush" name="crush" class="form-input" placeholder="好奇吗？可以悄悄写下来" value="{{ student.crush|default:'' }}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="dislike">讨厌过谁</label>
+                        <input type="text" id="dislike" name="dislike" class="form-input" placeholder="现在想想可能也不讨厌了吧" value="{{ student.dislike|default:'' }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="wish">你的愿望</label>
+                    <textarea id="wish" name="wish" class="form-textarea" placeholder="现在最想实现的愿望是什么？（选填）">{{ student.wish|default:'' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="dream">你的梦想</label>
+                    <textarea id="dream" name="dream" class="form-textarea" placeholder="从小到大，梦想变过吗？（选填）">{{ student.dream|default:'' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="favorite_food">最喜欢吃什么</label>
+                    <input type="text" id="favorite_food" name="favorite_food" class="form-input" placeholder="火锅？烧烤？还是妈妈做的菜？" value="{{ student.favorite_food|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="most_want_to_see">最想见的人</label>
+                    <input type="text" id="most_want_to_see" name="most_want_to_see" class="form-input" placeholder="最想见到谁？" value="{{ student.most_want_to_see|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="favorite_movie">最喜欢看的电影</label>
+                    <input type="text" id="favorite_movie" name="favorite_movie" class="form-input" placeholder="哪部电影让你念念不忘？" value="{{ student.favorite_movie|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="favorite_music">最喜欢听的歌</label>
+                    <input type="text" id="favorite_music" name="favorite_music" class="form-input" placeholder="有没有一首歌承载着你的回忆？" value="{{ student.favorite_music|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="most_want_to_go">最想去的地方</label>
+                    <input type="text" id="most_want_to_go" name="most_want_to_go" class="form-input" placeholder="最想去哪里旅行？" value="{{ student.most_want_to_go|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="most_unforgettable">最难忘的事</label>
+                    <textarea id="most_unforgettable" name="most_unforgettable" class="form-textarea" placeholder="学生时代最难忘的一件事是什么？（选填）">{{ student.most_unforgettable|default:'' }}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="hope_10_years">希望10年后的我们是什么样子</label>
+                    <textarea id="hope_10_years" name="hope_10_years" class="form-textarea" placeholder="十年之后，你希望我们大家都变成什么样子？">{{ student.hope_10_years|default:'' }}</textarea>
+                </div>
+
+                <!-- ===== Media Upload ===== -->
+                <h3 style="margin: var(--space-xl) 0 var(--space-lg); font-size: 1.125rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary-light)" stroke-width="2" style="display:inline; vertical-align: middle; margin-right: 6px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    照片 & 视频 <span class="text-sm" style="font-weight: 400; opacity: 0.5;">选填</span>
+                </h3>
+                <div class="form-group">
+                    <label class="form-label">上传照片</label>
+                    <div class="file-upload-area">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <p style="font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px;">点击或拖拽上传照片</p>
+                        <p class="text-xs">支持 JPG、PNG、WebP，可多选</p>
+                        <input type="file" name="photos" accept="image/*" multiple style="display:none;">
+                    </div>
+                    <div class="file-preview-grid"></div>
+                    {% if edit_mode and existing_photos %}
+                    <div style="margin-top: var(--space-md);">
+                        <p class="text-sm" style="font-weight: 600; margin-bottom: var(--space-sm);">已上传的照片（勾选删除）：</p>
+                        <div class="file-preview-grid">
+                            {% for photo in existing_photos %}
+                            <div class="file-preview-item">
+                                <img src="{{ photo.file.url }}" alt="照片">
+                                <label class="remove-file" style="display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                                    <input type="checkbox" name="delete_photos" value="{{ photo.id }}" style="width:16px;height:16px;accent-color:var(--color-destructive);">
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">上传视频</label>
+                    <div class="file-upload-area">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+                        <p style="font-size: 0.9375rem; font-weight: 500; margin-bottom: 4px;">点击或拖拽上传视频</p>
+                        <p class="text-xs">支持 MP4、MOV，可多选</p>
+                        <input type="file" name="videos" accept="video/*" multiple style="display:none;">
+                    </div>
+                    <div class="file-preview-grid"></div>
+                    {% if edit_mode and existing_videos %}
+                    <div style="margin-top: var(--space-md);">
+                        <p class="text-sm" style="font-weight: 600; margin-bottom: var(--space-sm);">已上传的视频（勾选删除）：</p>
+                        <div class="file-preview-grid">
+                            {% for video in existing_videos %}
+                            <div class="file-preview-item">
+                                <video src="{{ video.file.url }}" muted></video>
+                                <label class="remove-file" style="display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                                    <input type="checkbox" name="delete_videos" value="{{ video.id }}" style="width:16px;height:16px;accent-color:var(--color-destructive);">
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Submit -->
+                <div style="margin-top: var(--space-2xl);">
+                    <button type="submit" class="btn btn-primary btn-lg btn-block animate-scale-in">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        {% if edit_mode %}保存修改{% else %}提交信息{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}我的同学录 - 同窗录{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 40px; padding-bottom: 80px;">
+    <!-- Page Header -->
+    <div class="page-header animate-fade-in">
+        <div>
+            <h1>📖 我的同学录</h1>
+            <p class="text-sm" style="opacity: 0.6; margin-top: 4px;">共 {{ notebooks|length }} 本同学录</p>
+        </div>
+        <a href="{% url 'notebook_create' %}" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            新建同学录
+        </a>
+    </div>
+
+    {% if notebooks %}
+    <div class="grid grid-auto">
+        {% for notebook in notebooks %}
+        <div class="student-card animate-slide-up stagger-{{ forloop.counter }}" onclick="location.href='{% url 'notebook_detail' notebook.id %}'" style="cursor: pointer;">
+            <div class="student-card-header">
+                <div class="student-avatar" style="background: linear-gradient(135deg, #E11D48, #FB7185);">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                </div>
+                <div style="flex:1;">
+                    <div class="student-name">{{ notebook.title }}</div>
+                    <div class="student-nickname">
+                        {{ notebook.students.count }} 位同学 ·
+                        创建于 {{ notebook.created_at|date:"Y-m-d" }}
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+                <span class="badge badge-primary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    {{ notebook.students.count }} 人已填写
+                </span>
+            </div>
+            <div style="margin-top: var(--space-md); display: flex; gap: var(--space-sm); flex-wrap: wrap;">
+                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); copyToClipboard('{{ request.scheme }}://{{ request.get_host }}{% url 'fill_form' notebook.share_code %}', this);">📋 复制分享链接</button>
+                <a href="{% url 'notebook_trash' notebook.id %}" class="btn btn-ghost btn-sm" onclick="event.stopPropagation();">🗑 回收站</a>
+                <button class="btn btn-ghost btn-sm" style="color: var(--color-destructive);" onclick="event.stopPropagation(); showDeleteNotebookModal({{ notebook.id }}, '{{ notebook.title|escapejs }}')">✕ 删除</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="card animate-scale-in" style="margin-top: var(--space-xl);">
+        <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                <path d="M8 7h8M8 11h6M8 15h4"/>
+            </svg>
+            <h3>还没有同学录</h3>
+            <p>创建一本同学录，生成分享链接发给你的老同学们，让大家一起填写吧！</p>
+            <a href="{% url 'notebook_create' %}" class="btn btn-primary btn-lg">创建第一本同学录</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 删除同学录确认弹窗 -->
+<div id="deleteNotebookModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this)hideDeleteNotebookModal()">
+    <div class="modal-content">
+        <h2>✕ 删除整本同学录</h2>
+        <p style="opacity: 0.7;">确定要永久删除 <strong id="deleteNotebookName"></strong> 吗？</p>
+        <p class="text-sm mt-sm" style="opacity: 0.5;">此操作不可撤销，该同学录下所有同学的信息和上传的照片/视频将被一并删除。</p>
+        <form id="deleteNotebookForm" method="post" action="">
+            {% csrf_token %}
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="hideDeleteNotebookModal()">取消</button>
+                <button type="submit" class="btn btn-danger">确认永久删除</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function showDeleteNotebookModal(id, title) {
+    document.getElementById('deleteNotebookName').textContent = title;
+    document.getElementById('deleteNotebookForm').action = '/notebook/' + id + '/delete/';
+    document.getElementById('deleteNotebookModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function hideDeleteNotebookModal() {
+    document.getElementById('deleteNotebookModal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') hideDeleteNotebookModal();
+});
+</script>
+{% endblock %}

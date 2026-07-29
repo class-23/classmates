@@ -1,0 +1,47 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}创建同学录 - 同窗录{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 40px; padding-bottom: 80px;">
+    <div class="animate-fade-in" style="max-width: 520px; margin: 0 auto;">
+        <div style="margin-bottom: var(--space-xl);">
+            <a href="{% url 'dashboard' %}" class="btn btn-ghost btn-sm" style="margin-bottom: var(--space-md);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                返回
+            </a>
+            <h1>📝 新建同学录</h1>
+            <p class="text-sm" style="opacity: 0.6; margin-top: 4px;">给这本同学录取个名字吧</p>
+        </div>
+
+        <div class="card">
+            <form method="post" action="{% url 'notebook_create' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label" for="title">同学录名称 <span class="required">*</span></label>
+                    <input type="text" id="title" name="title" class="form-input" placeholder="例如：初中3班同学录" required maxlength="100">
+                    <div class="form-helper">起个名字，方便以后回忆是哪一届的同学</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block mt-lg animate-scale-in">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    创建同学录
+                </button>
+            </form>
+        </div>
+
+        <!-- Tips -->
+        <div class="card card-sm mt-xl" style="background: rgba(255,255,255,0.5);">
+            <div class="flex items-center gap-sm" style="margin-bottom: var(--space-sm);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span style="font-weight: 600; font-size: 0.9375rem;">小贴士</span>
+            </div>
+            <p class="text-sm" style="opacity: 0.7; line-height: 1.7;">
+                创建后会自动生成一个分享链接，把链接发给同学们，他们无需注册就能填写信息。
+                <br>你可以随时查看汇总，也可以搜索某位同学的信息。
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

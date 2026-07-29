@@ -1,0 +1,115 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}同窗录 - 珍藏同窗情谊{% endblock %}
+
+{% block extra_blobs %}
+<div class="blob blob-3"></div>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section style="padding: 80px 0; position: relative; overflow: hidden;">
+    <div class="container">
+        <div class="animate-slide-up" style="max-width: 600px; margin: 0 auto; text-align: center;">
+            <div style="width: 88px; height: 88px; border-radius: var(--radius-xl); background: linear-gradient(135deg, var(--color-primary), #FB7185); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-xl); box-shadow: 0 12px 36px rgba(225,29,72,0.3); animation: float 6s ease-in-out infinite;">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <h1 style="font-size: 3rem; margin-bottom: var(--space-md);">同窗录</h1>
+            <p style="font-size: 1.25rem; opacity: 0.7; line-height: 1.7; margin-bottom: var(--space-xl); max-width: 480px; margin-left: auto; margin-right: auto;">
+                创建属于你们班级的同学录，<br>
+                收集每一位老同学的信息，<br>
+                珍藏每一份同窗情谊。
+            </p>
+            <div class="flex items-center justify-center gap-md" style="flex-wrap: wrap;">
+                <a href="{% url 'register' %}" class="btn btn-primary btn-lg animate-scale-in">
+                    免费创建同学录
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-secondary btn-lg">我已注册</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section style="padding: 80px 0;">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: var(--space-3xl);">为什么选择同窗录？</h2>
+        <div class="grid grid-3" style="gap: var(--space-xl);">
+            <div class="card animate-slide-up stagger-1" style="text-align: center;">
+                <div style="width: 56px; height: 56px; border-radius: var(--radius-lg); background: rgba(225,29,72,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-lg);">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+                </div>
+                <h4 style="margin-bottom: var(--space-sm);">无需注册即可填写</h4>
+                <p style="font-size: 0.9375rem; opacity: 0.7; line-height: 1.7;">
+                    把分享链接发给同学，点开就能填，不需要注册账号，零门槛参与。
+                </p>
+            </div>
+            <div class="card animate-slide-up stagger-2" style="text-align: center;">
+                <div style="width: 56px; height: 56px; border-radius: var(--radius-lg); background: rgba(225,29,72,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-lg);">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+                <h4 style="margin-bottom: var(--space-sm);">照片视频全支持</h4>
+                <p style="font-size: 0.9375rem; opacity: 0.7; line-height: 1.7;">
+                    支持上传多张照片和视频，记录下大家现在的样子，留住这一刻。
+                </p>
+            </div>
+            <div class="card animate-slide-up stagger-3" style="text-align: center;">
+                <div style="width: 56px; height: 56px; border-radius: var(--radius-lg); background: rgba(225,29,72,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-lg);">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </div>
+                <h4 style="margin-bottom: var(--space-sm);">轻松搜索查找</h4>
+                <p style="font-size: 0.9375rem; opacity: 0.7; line-height: 1.7;">
+                    按名字一键搜索，快速找到你想联系的老同学，所有人一目了然。
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it works -->
+<section style="padding: 80px 0; background: rgba(255,255,255,0.3);">
+    <div class="container">
+        <h2 style="text-align: center; margin-bottom: var(--space-3xl);">三步搞定</h2>
+        <div style="display: flex; gap: var(--space-xl); justify-content: center; flex-wrap: wrap; max-width: 800px; margin: 0 auto;">
+            <div class="card card-sm animate-scale-in stagger-1" style="text-align: center; flex:1; min-width: 200px;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.25rem; margin: 0 auto var(--space-md);">1</div>
+                <h5>创建同学录</h5>
+                <p class="text-sm" style="opacity: 0.6;">注册后创建一本同学录，取个名字</p>
+            </div>
+            <div class="card card-sm animate-scale-in stagger-2" style="text-align: center; flex:1; min-width: 200px;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.25rem; margin: 0 auto var(--space-md);">2</div>
+                <h5>分享链接</h5>
+                <p class="text-sm" style="opacity: 0.6;">把链接发到班级群，让同学们填写</p>
+            </div>
+            <div class="card card-sm animate-scale-in stagger-3" style="text-align: center; flex:1; min-width: 200px;">
+                <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.25rem; margin: 0 auto var(--space-md);">3</div>
+                <h5>查看汇总</h5>
+                <p class="text-sm" style="opacity: 0.6;">所有信息自动汇总，随时查看搜索</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section style="padding: 80px 0;">
+    <div class="container">
+        <div class="card" style="text-align: center; max-width: 500px; margin: 0 auto;">
+            <h2 style="margin-bottom: var(--space-md);">现在就开始吧</h2>
+            <p style="opacity: 0.7; margin-bottom: var(--space-xl);">创建你的第一本同学录，把老朋友都找回来</p>
+            <a href="{% url 'register' %}" class="btn btn-primary btn-lg">免费创建同学录</a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer style="text-align: center; padding: var(--space-xl); opacity: 0.3;">
+    <p class="text-xs">同窗录 · 珍藏每一份同窗情谊</p>
+</footer>
+{% endblock %}

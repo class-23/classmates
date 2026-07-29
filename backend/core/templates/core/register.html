@@ -1,0 +1,116 @@
+{% extends "core/base.html" %}
+{% load static %}
+
+{% block title %}注册 - 同窗录{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 60px; padding-bottom: 80px;">
+    <div class="animate-fade-in" style="max-width: 480px; margin: 0 auto;">
+        <div class="card">
+            <div style="text-align: center; margin-bottom: var(--space-xl);">
+                <div style="width: 64px; height: 64px; border-radius: var(--radius-lg); background: linear-gradient(135deg, var(--color-primary), var(--color-primary-light)); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-lg); box-shadow: 4px 4px 12px rgba(225,29,72,0.3);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                </div>
+                <h1 style="font-size: 1.75rem;">注册同窗录</h1>
+                <p style="color: var(--color-foreground-light); opacity: 0.7; margin-top: var(--space-sm);">用邮箱注册，开始记录同窗情谊</p>
+            </div>
+
+            <form method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label" for="email">邮箱 <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" class="form-input" placeholder="请输入邮箱地址" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="verification_code">验证码 <span class="required">*</span></label>
+                    <div style="display: flex; gap: var(--space-sm);">
+                        <input type="text" id="verification_code" name="verification_code" class="form-input" placeholder="6位数字验证码" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" required style="flex:1;">
+                        <button type="button" id="sendCodeBtn" class="btn btn-secondary" style="white-space: nowrap; flex-shrink: 0;" onclick="sendCode()">发送验证码</button>
+                    </div>
+                    <div class="form-helper">验证码将发送至您的邮箱，有效期5分钟</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">密码 <span class="required">*</span></label>
+                    <input type="password" id="password" name="password" class="form-input" placeholder="至少8位密码" minlength="8" required autocomplete="new-password">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="confirm_password">确认密码 <span class="required">*</span></label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-input" placeholder="再次输入密码" minlength="8" required autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg btn-block mt-lg animate-scale-in">
+                    注 册
+                </button>
+            </form>
+
+            <div style="text-align: center; margin-top: var(--space-xl);">
+                <p class="text-sm" style="opacity: 0.7;">
+                    已有账号？
+                    <a href="{% url 'login' %}" style="font-weight: 600;">去登录</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+var countdown = 0;
+function sendCode() {
+    var btn = document.getElementById('sendCodeBtn');
+    var email = document.getElementById('email').value.trim();
+    if (!email || !email.includes('@')) {
+        alert('请先输入有效的邮箱地址');
+        return;
+    }
+    if (countdown > 0) return;
+
+    btn.disabled = true;
+    btn.textContent = '发送中...';
+
+    fetch('/api/send-verification-code/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.code === 200) {
+            countdown = 60;
+            btn.textContent = countdown + 's';
+            var timer = setInterval(function() {
+                countdown--;
+                btn.textContent = countdown + 's';
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.textContent = '重新发送';
+                }
+            }, 1000);
+        } else {
+            alert(data.message || '发送失败，请重试');
+            btn.disabled = false;
+            btn.textContent = '发送验证码';
+        }
+    })
+    .catch(function() {
+        alert('网络错误，请重试');
+        btn.disabled = false;
+        btn.textContent = '发送验证码';
+    });
+}
+</script>
+{% endblock %}
