@@ -1,0 +1,53 @@
+# === Git ===
+.git
+.gitignore
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+venv/
+.venv/
+env/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === 环境配置 ===
+.env
+.env.local
+
+# === 日志 ===
+*.log
+logs/
+
+# === 数据库 ===
+db.sqlite3
+db.sqlite3-journal
+
+# === 用户上传文件（运行时生成）===
+backend/media/
+backend/staticfiles/
+backend/core/static/core/uploads/*
+!backend/core/static/core/uploads/.gitkeep
+
+# === 文档 ===
+docs/
+*.md
+
+# === Docker 自身 ===
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# === 设计系统 ===
+design-system/
+.trae/

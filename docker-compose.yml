@@ -26,28 +26,38 @@ services:
     container_name: classmates-web
     restart: unless-stopped
     ports:
-      - "2323:2323"
+      - "${DJANGO_RUN_PORT:-2323}:${DJANGO_RUN_PORT:-2323}"
     env_file:
       - .env
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DJANGO_SETTINGS_MODULE: config.settings
-      DB_NAME: ${DB_NAME:-classmates_record}
-      DB_USER: ${DB_USER:-root}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: db
-      DB_PORT: "5432"
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
-      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-*}
-      EMAIL_HOST: ${EMAIL_HOST}
-      EMAIL_PORT: ${EMAIL_PORT:-465}
-      EMAIL_USE_SSL: ${EMAIL_USE_SSL:-true}
-      EMAIL_HOST_USER: ${EMAIL_HOST_USER}
-      EMAIL_HOST_PASSWORD: ${EMAIL_HOST_PASSWORD}
-      DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-true}
+      - DJANGO_ALLOWED_HOSTS=${DJANGO_ALLOWED_HOSTS:-*}
+      - DJANGO_RUN_PORT=${DJANGO_RUN_PORT:-2323}
+      - DB_ENGINE=django.db.backends.postgresql
+      - DB_NAME=${DB_NAME:-classmates_record}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT:-465}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL:-true}
+      - EMAIL_HOST_USER=${EMAIL_HOST_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD}
+      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL}
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
+      - GUNICORN_LOGLEVEL=${GUNICORN_LOGLEVEL:-info}
+    volumes:
+      - media_data:/app/backend/media
+      - static_data:/app/backend/staticfiles
 
 volumes:
   pgdata:
+  media_data:
+  static_data:

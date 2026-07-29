@@ -14,9 +14,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制项目
 COPY . .
 
-# 收集静态文件
-RUN python backend/manage.py collectstatic --noinput --settings=config.settings 2>/dev/null || true
+# 创建数据目录
+RUN mkdir -p /app/backend/media /app/backend/staticfiles
 
-# 启动
+# 设置入口脚本权限
+RUN chmod +x deploy/entrypoint.sh
+
+# 暴露端口
 EXPOSE 2323
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:2323", "--chdir", "backend", "--workers", "4"]
+
+# 使用入口脚本启动
+ENTRYPOINT ["deploy/entrypoint.sh"]

@@ -125,9 +125,10 @@ USE_TZ = True
 
 STATIC_URL = os.getenv('STATIC_URL', '/static/')
 STATICFILES_DIRS = [BASE_DIR / 'core' / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = os.getenv('MEDIA_URL', '/uploads/')
-MEDIA_ROOT = BASE_DIR / 'core' / 'static' / 'core' / 'uploads'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 
 # ===== 邮箱配置 =====
